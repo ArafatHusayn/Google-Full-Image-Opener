@@ -10,7 +10,7 @@ chrome.contextMenus.onClicked.addListener(function(item, tab) {
 
 chrome.contextMenus.create({
   id: 'show_image',
-  title: 'Open Image Now!',
+  title: 'Open Image Link Now!',
   type: 'normal',
   contexts: ['all'],
 });
