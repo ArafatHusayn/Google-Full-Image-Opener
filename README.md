@@ -4,7 +4,7 @@ A desktop web browser extension to bring the original image link opening back on
 
 # Install
 
-`links to be pasted here`
+  - Google Chrome or Chromium ([WebStore](https://chrome.google.com/webstore/detail/beojccknfoajfebcpijalgejjpbdipcb))
 
 # How to use
 
