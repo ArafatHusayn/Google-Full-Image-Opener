@@ -1,33 +1,64 @@
-function setUrl(url) {
-  chrome.storage.local.set({'image_url': url}, function() {
-    console.log('Image URL: ' + url + 'has been set for context menu.');
-  });
+const setUrl = url => {
+  chrome.storage.local.set({ image_url: url })
 }
 
-function addListeners() {
-  var googleImageElements = document.querySelectorAll('a.rg_l');
+const parseImageURL = unparsedURL => {
+  try {
+    const url = decodeURIComponent(
+      unparsedURL.replace(/http.*imgurl\=/, "").replace(/&imgrefurl.*/, "")
+    )
 
-  for ( el of googleImageElements ) {
-    el.addEventListener('click', event => {
-      var url = '';
-      if(event.target.tagName == 'A') {
-        url = decodeURIComponent( event.target.href.replace(/http.*imgurl\=/, '').replace(/&imgrefurl.*/, '' ));
-      } else if (event.target.tagName == 'IMG') {
-        url = decodeURIComponent(event.target.parentElement.href.replace(/http.*imgurl\=/, '').replace(/&imgrefurl.*/, ''));
-      } else {
-        console.log(event.target);
-      }
-        setUrl(url);
-    });
+    return url
+  } catch (error) {
+    window.console.error("[Google Image Opener] Error: ", error)
   }
 }
 
-addListeners();
+const addListeners = () => {
+  const googleImageElements = document.querySelectorAll('a[jsaction*="click"]')
 
-var observer = new MutationObserver(function(mutations) {
-  addListeners();
-});
+  for (el of googleImageElements) {
+    el.addEventListener("click", async event => {
+      let url = ""
 
-var container = document.documentElement || document.body;
-var config = { childList: true, subtree: true };
-observer.observe(container, config);
+      if (event.target.tagName === "A" || event.target.tagName === "IMG") {
+        url =
+          event.target.tagName === "A"
+            ? parseImageURL(event.target.href)
+            : parseImageURL(event.target.closest("a").href)
+      } else {
+        return
+      }
+
+      if (url && url !== "") {
+        setUrl(url)
+      }
+    })
+  }
+}
+
+addListeners()
+
+const observer = new MutationObserver(mutations => {
+  addListeners()
+})
+
+const container = document.documentElement || document.body
+
+const config = { childList: true, subtree: true }
+
+observer.observe(container, config)
+
+chrome.runtime.onMessage.addListener((request, _sender, sendResponse) => {
+  if (request && request.error) {
+    const id = setTimeout(() => {
+      alert(request.error)
+
+      window.console.log(request.error)
+
+      clearTimeout(id)
+    }, 200)
+  }
+
+  sendResponse(true)
+})
